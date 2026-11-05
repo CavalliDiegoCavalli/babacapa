@@ -207,3 +207,48 @@
 }
 /* SP-IN (2026-10-21): intestazione dell'affiliazione che apre la sua pagina */
 .mgx-aff-h--lk{width:100%;border:0;background:none;color:inherit;font:inherit;text-align:left;text-decoration:none;cursor:pointer}
+/* SP-IN (2026-11-05, Diego): sigla accanto al nome, società nel sottotitolo prima del campo, pagina della squadra senza
+   "Da sistemare" (l'intestazione prende tutta la riga) e con le statistiche prima degli atleti */
+.mgx-place{flex-wrap:wrap}
+.mgx-club{font-weight:700;margin-right:var(--space-8)}
+.mgx-sigla{flex:none;padding:2px var(--space-8);box-shadow:inset 0 0 0 1.5px var(--c);font-family:var(--display);font-stretch:var(--display-w);font-weight:800;font-size:var(--fs-14);letter-spacing:.08em;color:var(--ink)}
+.mgx--stfirst .mgx-o-sts{order:3}.mgx--stfirst .mgx-o-ath{order:4}
+@container mgx (min-width:900px){
+  .mgx--notodo .mgx-o-intro{grid-column:1/-1}
+}
+/* SP-IN (2026-11-05, Diego): giorno della gara sopra l'ora nel tabellone degli eventi; campo che apre le mappe */
+.mgx-bug--d{height:34px}
+.mgx-bug--d>.mgx-bug-m{grid-template-rows:auto auto;align-content:center;gap:1px;padding:0 10px}
+.mgx-bug-m small{transform:skewX(var(--mgx-unskew));font-family:var(--font-mono);font-size:10px;line-height:1;text-transform:lowercase;opacity:.85}
+.mgx-bug--d .mgx-bug-m b{line-height:1}
+.mgx-map{display:inline-flex;align-items:center;gap:6px;color:inherit;text-decoration:underline;text-decoration-color:var(--line-strong);text-underline-offset:3px}
+.mgx-map:hover{text-decoration-color:currentColor}
+/* SP-IN (2026-11-05, Diego): pagina della squadra e dell'atleta (mgx--fix) con l'intestazione ferma; su PC la colonna
+   principale e quella di destra scorrono ognuna per conto suo, alte quanto lo spazio sotto l'intestazione (--mgx-h, lo
+   calcola l'app); i pulsanti inclinati non vanno tagliati: spazio interno compensato dal margine */
+.mgx--fix .mgx-o-intro{position:sticky;top:0;z-index:6;background:var(--mgx-page-bg,var(--surface));margin:calc(-1 * var(--space-8)) calc(-1 * var(--space-16)) 0;padding:var(--space-8) var(--space-16) var(--space-12)}
+@container mgx (min-width:900px){
+  .mgx--fix .mgx-grid{height:var(--mgx-h,auto);grid-template-rows:auto minmax(0,1fr);padding-bottom:0}
+  .mgx--fix .mgx-o-intro{position:static;margin:0;padding:0;background:none}
+  .mgx--fix .mgx-main,.mgx--fix .mgx-side{height:100%;overflow-y:auto;overscroll-behavior:contain;margin:0 calc(-1 * var(--space-8));padding:0 var(--space-8) var(--space-32)}
+}
+/* SP-IN (2026-11-05, Diego): nome dell'atleta che apre la scheda; prossimi eventi compatti (miniatura "vs", giorno per
+   esteso, Convoca) */
+.mgx-alink{color:inherit;text-decoration:none;border:0;padding:0;background:none;font:inherit;cursor:pointer}
+.mgx-alink:hover b,.mgx-alink:focus-visible b{text-decoration:underline;text-underline-offset:3px}
+.mgx-li{cursor:default}
+.mgx-ev--c{flex-direction:row;align-items:center;gap:12px}
+.mgx-ev-m{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}
+.mgx-ev--c .mgx-ev-a{justify-content:center;width:100%}
+.mgx-ev--c .mgx-bug{height:36px;width:100%;max-width:230px}
+.mgx-ev--c .mgx-bug>span{flex:1}
+.mgx-ev--c .mgx-bug>.mgx-bug-m{flex:0 0 auto;padding:0 12px}
+.mgx-ev--c .mgx-bug>span b{font-size:16px}
+.mgx-ev--c .mgx-bug-m b{font-size:13px}
+.mgx-ev-p{display:inline-flex;align-items:center;justify-content:center;gap:4px;max-width:100%;font-size:var(--fs-13);color:var(--ink);text-decoration:underline;text-decoration-color:var(--line-strong);text-underline-offset:3px}
+.mgx-ev-p span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mgx-ev-p svg{flex:none;width:14px;height:14px}
+.mgx-ev-b{flex:none}
+.mgx-ev--c .mgx-bug-m b{font-family:var(--font-display);font-style:italic;font-weight:900;text-transform:uppercase}
+.mgx-ev-d{display:block;font-size:var(--fs-14);color:var(--muted)}
+.mgx-ev-d::first-letter{text-transform:uppercase}

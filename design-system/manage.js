@@ -71,23 +71,27 @@
     const x = s.extra ? `<span class="mgx-sec-x${s.extraWide ? ' mgx-wide' : ''}">${esc(s.extra)}</span>` : '';
     const xs = s.extraNarrow ? `<span class="mgx-sec-x mgx-narrow">${esc(s.extraNarrow)}</span>` : '';
     return `<section class="mgx-sec mgx-o-${esc(s.key || 'x')}"${s.id ? ` id="${esc(s.id)}"` : ''}>
-    <div class="mgx-sec-h"><h2>${esc(s.title)}</h2><span class="mgx-dash" aria-hidden="true"></span>${x}${xs}<span class="mgx-grow"></span>${s.action ? `<span class="mgx-wide">${btn(s.action, true)}</span>` : ''}</div>
+    <div class="mgx-sec-h"><h2>${esc(s.title)}</h2><span class="mgx-dash" aria-hidden="true"></span>${x}${xs}<span class="mgx-grow"></span>${s.action ? `<span class="mgx-sec-a">${btn(s.action, true)}</span>` : ''}</div>
     ${s.inner || ''}
   </section>`;
   }
 
-  /* ---------- intestazione ---------- */
+  /* ---------- intestazione ----------
+     SP-IN (2026-11-05): sigla accanto al nome (i.sigla), pulsante piccolo accanto al nome (i.after, es. "Storico" dell'atleta),
+     riga di testo sotto il nome (i.line) e sottotitolo con la società (i.club) prima del campo (i.place), che con i.placeHref
+     apre le mappe */
   function intro(i) {
     i = i || {};
-    const mark = i.society
+    const mark = i.mark ? i.mark : i.society
       ? `<span class="mgx-mono" style="--c:${esc(i.color || INK)}" aria-hidden="true"><b>${esc(i.monogram || initials(i.title))}</b></span>`
       : crest(i.team || { name: i.title, color: i.color }, 'mgx-crest');
     const edit = i.edit ? tag(i.edit, 'mgx-edit', `<span>${I.pencil}<b>${esc(i.edit.label || 'Modifica')}</b></span>`, ` aria-label="${esc(i.edit.ariaLabel || 'Modifica ' + (i.society ? 'la società' : 'la squadra'))}"`) : '';
     return `<div class="mgx-intro mgx-o-intro">
     ${i.back ? tag(i.back, 'mgx-back', `${I.left}<span>${esc(i.back.label)}</span>`) : ''}
     ${i.kicker ? `<span class="mgx-kick">${esc(i.kicker)}</span>` : ''}
-    <div class="mgx-name">${mark}<h1>${esc(i.title)}</h1>${edit}</div>
-    ${i.place ? `<p class="mgx-place">${I.pin}<span>${esc(i.place)}</span></p>` : ''}
+    <div class="mgx-name">${mark}<h1>${esc(i.title)}</h1>${i.sigla ? `<span class="mgx-sigla" title="Sigla">${esc(i.sigla)}</span>` : ''}${i.after ? btn(Object.assign({}, i.after), true) : ''}${edit}</div>
+    ${i.line ? `<p class="mgx-place mgx-line">${esc(i.line)}</p>` : ''}
+    ${i.club || i.place ? `<p class="mgx-place">${i.club ? `<span class="mgx-club">${esc(i.club)}</span>` : ''}${i.place ? (i.placeHref ? `<a class="mgx-map" href="${esc(i.placeHref)}"${/^https/.test(i.placeHref) ? ' target="_blank" rel="noopener"' : ''} aria-label="${esc('Apri ' + i.place + ' nelle mappe')}">${I.pin}<span>${esc(i.place)}</span></a>` : `${I.pin}<span>${esc(i.place)}</span>`) : ''}</p>` : ''}
     ${(i.actions || []).length ? `<div class="mgx-acts">${i.actions.map(a => btn(a)).join('')}</div>` : ''}
   </div>`;
   }
@@ -122,23 +126,25 @@
     const role = a => a.role != null ? a.role : Math.floor(Number(a.num) / 10);
     const rows = list.map(a => {
       const [mk, mt, ms] = medTxt(a.medical);
-      const link = a.href || a.attrs ? tag(a, 'mgx-rowlink', `<span class="mgx-sr">Apri ${esc(a.name)}</span>${I.chev}`) : '';
-      return `<tr><td><b class="mgx-num">${esc(a.num)}</b></td><td><b>${esc(a.name)}</b></td><td class="mgx-mut">Ruolo ${esc(role(a))}</td><td>${cardCell(a)}</td>
-        <td>${st(mk, mt)}${ms ? `<small class="mgx-sub">${esc(ms)}</small>` : ''}</td><td>${a.release === 'ok' ? st('ok', 'Firmata') : st('warn', 'Da caricare')}</td><td class="mgx-r">${link}</td></tr>`;
+      /* SP-IN (2026-11-05, Diego): la scheda dell'atleta si apre dal nome, niente ">" in fondo alla riga */
+      const nm = a.href || a.attrs ? tag(a, 'mgx-alink', `<b>${esc(a.name)}</b>`) : `<b>${esc(a.name)}</b>`;
+      return `<tr><td><b class="mgx-num">${esc(a.num)}</b></td><td>${nm}</td><td class="mgx-mut">Ruolo ${esc(role(a))}</td><td>${cardCell(a)}</td>
+        <td>${st(mk, mt)}${ms ? `<small class="mgx-sub">${esc(ms)}</small>` : ''}</td><td>${a.release === 'ok' ? st('ok', 'Firmata') : st('warn', 'Da caricare')}</td></tr>`;
     }).join('');
     const items = list.map(a => {
       const [mk, mt] = medTxt(a.medical), iss = [];
       if (!(a.card && a.card.number)) iss.push(st(a.card && a.card.state || 'warn', a.card && a.card.text ? 'Tessera: ' + a.card.text.toLowerCase() : 'Tessera in ordine'));
       if (mk === 'warn' || mk === 'crit') iss.push(st(mk, 'Visita ' + mt));
       if (a.release !== 'ok') iss.push(st('warn', 'Liberatoria da caricare'));
+      const nm = a.href || a.attrs ? tag(a, 'mgx-alink', `<b>${esc(a.name)}</b>`) : `<b>${esc(a.name)}</b>`;
       const inner = `<b class="mgx-num">${esc(a.num)}</b><span class="mgx-grow mgx-col">
-          <b>${esc(a.name)} <small class="mgx-mut">· Ruolo ${esc(role(a))}</small></b>
+          <span>${nm} <small class="mgx-mut">· Ruolo ${esc(role(a))}</small></span>
           ${a.card && a.card.number ? `<small class="mgx-mut">Tessera <span class="mgx-mono-t">${esc(a.card.number)}</span></small>` : ''}
-          ${iss.length ? `<span class="mgx-iss">${iss.join('')}</span>` : st('ok', 'Documenti in regola')}</span>${chev()}`;
-      return a.href || a.attrs ? tag(a, 'mgx-li', inner) : `<div class="mgx-li">${inner}</div>`;
+          ${iss.length ? `<span class="mgx-iss">${iss.join('')}</span>` : st('ok', 'Documenti in regola')}</span>`;
+      return `<div class="mgx-li">${inner}</div>`;
     }).join('');
     return `<div class="mgx-ath" style="--c:${esc(color || INK)}">
-    <table class="mgx-tbl mgx-wide"><thead><tr><th>#</th><th>Atleta</th><th>Ruolo</th><th>Tessera</th><th>Visita medica</th><th>Liberatoria</th><th><span class="mgx-sr">Apri</span></th></tr></thead><tbody>${rows}</tbody></table>
+    <table class="mgx-tbl mgx-wide"><thead><tr><th>#</th><th>Atleta</th><th>Ruolo</th><th>Tessera</th><th>Visita medica</th><th>Liberatoria</th></tr></thead><tbody>${rows}</tbody></table>
     <div class="mgx-narrow">${items}</div>
   </div>`;
   }
@@ -179,8 +185,11 @@
       ['Falli', 'Falli tecnici', 'sul totale dei falli, partite di campionato', v => pct(v.tech), g.league]
     ];
   }
+  /* SP-IN (2026-11-05): s.columns = [{ label, v: Valori }] sostituisce Squadra + Ruolo 1…5 (scheda dell'atleta: atleta,
+     media del ruolo, media della squadra); la prima colonna è quella in evidenza e la sola sul telefono */
   function stats(s) {
     s = s || {};
+    if (s.columns) return statsCols(s);
     const T = s.team || {}, R = s.roles || {}, rows = statRows(s.games);
     let tb = '', grp = null;
     rows.forEach(([gr, lab, det, f, n]) => {
@@ -204,20 +213,52 @@
   </div>`;
   }
 
+  function statsCols(s) {
+    const C = s.columns, rows = statRows(s.games), T = C[0].v || {};
+    let tb = '', grp = null;
+    rows.forEach(([gr, lab, det, f, n]) => {
+      if (gr !== grp) { grp = gr; tb += `<tr class="mgx-grp"><th colspan="${C.length + 1}" scope="colgroup">${esc(gr)}</th></tr>`; }
+      tb += `<tr><th scope="row">${esc(lab)}${det ? ` <small class="mgx-mut">· ${esc(det)}</small>` : ''}${games(n)}</th>${C.map((c, k) => `<td${k ? '' : ' class="mgx-team"'}>${f(c.v || {})}</td>`).join('')}</tr>`;
+    });
+    let li = ''; grp = null;
+    rows.forEach(([gr, lab, det, f, n, kind]) => {
+      if (gr !== grp) { grp = gr; li += `<div class="mgx-st-g">${esc(gr)}</div>`; }
+      if (kind === 'q') {
+        if (det.startsWith('1')) li += `<div class="mgx-st-r mgx-st-r--q"><span class="mgx-mut">Punti medi per quarto${games(n)}</span><div class="mgx-qs">${[0, 1, 2, 3].map(k => `<span><small>${k + 1}° quarto</small><b>${dec((T.q || [])[k])}</b></span>`).join('')}</div></div>`;
+        return;
+      }
+      li += `<div class="mgx-st-r"><span class="mgx-mut">${esc(lab)}${det ? `<br><small>${esc(det)}</small>` : ''}${games(n)}</span><b>${f(T)}</b></div>`;
+    });
+    return `<div class="mgx-stats">
+    <table class="mgx-tbl mgx-stbl mgx-wide"><thead><tr><th><span class="mgx-sr">Statistica</span></th>${C.map((c, k) => `<th${k ? '' : ' class="mgx-team"'}>${esc(c.label)}</th>`).join('')}</tr></thead><tbody>${tb}</tbody></table>
+    <div class="mgx-narrow">${li}${s.narrowNote ? `<small class="mgx-note">${esc(s.narrowNote)}</small>` : ''}</div>
+  </div>`;
+  }
+
   /* ---------- squadra: eventi con convocazione ----------
      Evento = { home: Team, away: Team, day, time, comp, href|attrs,
                 conv: { state: 'ok'|'warn'|'crit', label, sub, action: { label, primary?, href|attrs } } } */
-  function bug(H, A, time) {
+  /* SP-IN (2026-11-05, Diego): sopra l'ora il giorno della gara ("sab 8 nov", e.date) */
+  function bug(H, A, time, date) {
     const hc = H.color || INK, ac = A.color || INK;
-    return `<span class="mgx-bug" aria-hidden="true"><span style="--x:${esc(hc)};--x-on:${onColor(hc)}"><b>${esc(abbr(H))}</b></span><span class="mgx-bug-m"><b>${esc(time || '—')}</b></span><span style="--x:${esc(ac)};--x-on:${onColor(ac)}"><b>${esc(abbr(A))}</b></span></span>`;
+    return `<span class="mgx-bug${date ? ' mgx-bug--d' : ''}" aria-hidden="true"><span style="--x:${esc(hc)};--x-on:${onColor(hc)}"><b>${esc(abbr(H))}</b></span><span class="mgx-bug-m">${date ? `<small>${esc(date)}</small>` : ''}<b>${esc(time || '—')}</b></span><span style="--x:${esc(ac)};--x-on:${onColor(ac)}"><b>${esc(abbr(A))}</b></span></span>`;
   }
+  /* SP-IN (2026-11-05, Diego): con e.when la gara è la miniatura "SIG vs SIG", sotto il giorno per esteso ("giovedì
+     5 novembre") e sotto il pulsante della convocazione (e.conv.action) */
   function events(list) {
     list = list || [];
     if (!list.length) return '<div class="mgx-empty">Nessun evento in programma.</div>';
+    if (list[0].when) return list.map(e => {
+      const H = e.home || {}, A = e.away || {}, title = `${H.name || ''} – ${A.name || ''}`;
+      /* SP-IN (2026-11-05): a sinistra, centrati, miniatura grande, giorno e luogo (e.place, che con e.placeHref apre le
+         mappe); a destra "Convoca" */
+      const pl = e.place ? (e.placeHref ? `<a class="mgx-ev-p" href="${esc(e.placeHref)}"${/^https/.test(e.placeHref) ? ' target="_blank" rel="noopener"' : ''} aria-label="${esc('Apri ' + e.place + ' nelle mappe')}">${I.pin}<span>${esc(e.place)}</span></a>` : `<span class="mgx-ev-p">${I.pin}<span>${esc(e.place)}</span></span>`) : '';
+      return `<div class="mgx-ev mgx-ev--c"><div class="mgx-ev-m">${tag(e, 'mgx-ev-a', bug(H, A, 'vs'), ` aria-label="${esc(`${title}, ${e.when}`)}" title="${esc(title)}"`)}<span class="mgx-ev-d">${esc(e.when)}${e.time ? ' · ' + esc(e.time) : ''}</span>${pl}</div>${e.conv && e.conv.action ? `<span class="mgx-ev-b">${btn(e.conv.action, true)}</span>` : ''}</div>`;
+    }).join('');
     return list.map(e => {
       const H = e.home || {}, A = e.away || {}, title = `${H.short || H.name || ''} – ${A.short || A.name || ''}`;
       const cv = e.conv;
-      const head = tag(e, 'mgx-ev-a', `${bug(H, A, e.time)}<span class="mgx-col mgx-min"><b>${esc(title)}</b><small class="mgx-mut mgx-ell">${esc([e.day, e.comp].filter(Boolean).join(' · '))}</small></span>`, ` aria-label="${esc(`${title}, ${e.day || ''} ore ${e.time || ''}`)}"`);
+      const head = tag(e, 'mgx-ev-a', `${bug(H, A, e.time, e.date)}<span class="mgx-col mgx-min"><b>${esc(title)}</b><small class="mgx-mut mgx-ell">${esc([e.day, e.comp].filter(Boolean).join(' · '))}</small></span>`, ` aria-label="${esc(`${title}, ${e.day || e.date || ''} ore ${e.time || ''}`)}"`);
       return `<div class="mgx-ev">${head}${cv ? `<div class="mgx-ev-c"><span class="mgx-col">${st(cv.state || 'warn', cv.label)}${cv.sub ? `<small class="mgx-mut">${esc(cv.sub)}</small>` : ''}</span>${btn(cv.action, true)}</div>` : ''}</div>`;
     }).join('');
   }
@@ -269,7 +310,7 @@
      telefono (classi mgx-o-*). */
   function page(kind, d, main, side) {
     const c = d.color || (d.team && d.team.color) || INK;
-    return `<div class="mgx mgx--${kind}" style="--c:${esc(c)};--c-on:${onColor(c)}">
+    return `<div class="mgx mgx--${kind}${d.cls ? ' ' + d.cls : ''}" style="--c:${esc(c)};--c-on:${onColor(c)}">
   <div class="mgx-grid">
     ${main.intro}${main.todo}
     <div class="mgx-main">${main.cols.join('')}</div>
@@ -283,12 +324,15 @@
   function teamPage(d) {
     d = d || {};
     const t = d.team || {}, c = t.color || INK, x = d.extras || {};
-    const i = intro({ team: t, title: t.name, kicker: d.kicker, back: d.back, place: d.place, edit: d.edit, actions: d.actions });
+    const i = intro({ team: t, title: t.name, sigla: d.sigla, club: d.club, kicker: d.kicker, back: d.back, place: d.place, placeHref: d.placeHref, edit: d.edit, actions: d.actions });
     const ath = sec({ key: 'ath', title: 'Atleti', extra: x.athletes, extraWide: true, action: d.addAthlete, inner: athletes(d.athletes, c) });
     const stf = sec({ key: 'stf', title: 'Staff', extra: x.staff, extraWide: true, action: d.addStaff, inner: staff(d.staff) });
-    const sts = sec({ key: 'sts', title: 'Statistiche', extra: 'squadra e per ruolo', extraWide: true, extraNarrow: 'della squadra', inner: stats(d.stats) });
-    const evs = sec({ key: 'evs', title: 'Eventi', extra: x.events, extraWide: true, inner: events(d.events) });
-    return page('team', { color: c }, { intro: i, todo: todo(d.todo), cols: [ath, sts] }, [stf, evs]);
+    const sts = d.stats === null ? '' : sec({ key: 'sts', title: 'Statistiche', extra: 'squadra e per ruolo', extraWide: true, extraNarrow: 'della squadra', inner: stats(d.stats) });
+    const evs = sec({ key: 'evs', title: 'Prossimi eventi', extra: x.events, extraWide: true, inner: events(d.events) });
+    /* SP-IN (2026-11-05, Diego): senza "Da sistemare" (d.todo null) l'intestazione prende tutta la riga; d.statsFirst mette
+       le statistiche prima degli atleti, anche sul telefono */
+    return page('team', { color: c, cls: [d.todo ? '' : 'mgx--notodo', d.statsFirst ? 'mgx--stfirst' : '', d.fix ? 'mgx--fix' : ''].filter(Boolean).join(' ') },
+      { intro: i, todo: d.todo ? todo(d.todo) : '', cols: d.statsFirst ? [sts, ath] : [ath, sts] }, [stf, evs]);
   }
 
   /* d = { society: { name, monogram?, color }, kicker, back, edit, actions: [btn], todo: { items }, docs: [], affiliations: [],
@@ -305,5 +349,5 @@
   }
 
   window.SPIN = window.SPIN || {};
-  window.SPIN.manage = { teamPage, societyPage, intro, todo, section: sec, athletes, staff, stats, events, docs, affiliations, teams, athleteDocs, onColor };
+  window.SPIN.manage = { teamPage, societyPage, intro, todo, section: sec, athletes, staff, stats, events, page, docs, affiliations, teams, athleteDocs, onColor };
 })();

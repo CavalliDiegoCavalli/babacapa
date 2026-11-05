@@ -271,6 +271,8 @@ a.maplink svg{color:var(--primary)}
 /* ---------- Utenti (dalla 1.7, admin e owner) ---------- */
 .tbi{position:relative;display:inline-flex}
 .ufilts{display:flex;flex-direction:column;gap:var(--space-8);margin-bottom:var(--space-12)}
+/* Aggiungi un utente e Nomina un arbitro (2026-11-04): staccati dai filtri, con lo spazio per l'inclinazione del pulsante */
+.upanel>.btn{margin:0 0 var(--space-16) var(--space-8)}
 .ufilt{display:flex;flex-wrap:wrap;gap:var(--space-8)}
 .ufb{height:38px;padding:0 var(--space-16);border-radius:var(--radius-pill);border:1px solid var(--line);background:var(--surface);color:var(--muted);font:inherit;font-weight:700;font-size:var(--fs-14);cursor:pointer}
 .ufb b{color:var(--ink);margin-left:var(--space-2)}
@@ -349,17 +351,6 @@ a.maplink svg{color:var(--primary)}
 .pleg li i{width:12px;height:12px;border-radius:var(--radius-xs);align-self:center}
 .pleg li span{color:var(--ink);white-space:nowrap}
 .pleg li b{font-size:var(--fs-13);font-weight:700;color:var(--ink);white-space:nowrap}
-.beta{display:flex;gap:var(--space-12);align-items:flex-start;padding:var(--space-12) var(--space-16);border-radius:var(--radius-md);border:2px solid var(--warn);background:var(--warn-soft);line-height:1.45;font-size:var(--fs-14);color:var(--ink)}
-.beta .chip{flex:none;margin-top:var(--space-2)}
-/* Diego, 2026-11-03: il banner Beta è una fisarmonica chiusa (details), si apre al tocco */
-details.beta{display:block}
-details.beta>summary{display:flex;gap:var(--space-12);align-items:center;cursor:pointer;list-style:none;-webkit-user-select:none;user-select:none}
-details.beta>summary::-webkit-details-marker{display:none}
-details.beta>summary .chip{margin-top:0}
-details.beta .beta-t{flex:1}
-details.beta>summary .sp-ic{flex:none;transition:transform .15s}
-details.beta[open]>summary .sp-ic{transform:rotate(180deg)}
-details.beta .beta-p{margin:var(--space-8) 0 0}
 .rcard{display:flex;flex-direction:column;align-items:center;gap:var(--space-8)}
 .rcard .h3{margin:0;align-self:flex-start}
 .rcard>.sub{align-self:flex-start}
@@ -1152,3 +1143,116 @@ a.back:focus-visible{outline:3px solid var(--focus);outline-offset:-3px}
 .tgg-st{font-size:var(--fs-11);font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);display:inline-flex;align-items:center;gap:var(--space-4)}
 .tgg-st.is-ok{color:var(--ok)}
 .tgg:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+/* Società, squadre nuove e inviti (Diego, 2026-11-04, 1.33.7) */
+.sosub{display:inline-flex;flex-wrap:wrap;gap:var(--space-12);align-items:center}
+.sopage .sp-main{display:flex;flex-direction:column;gap:var(--space-32)}
+.somiss,.soro{gap:var(--space-12);align-items:center;flex-wrap:wrap}
+.soro{background:var(--sunk);padding:var(--space-8) var(--space-12);color:var(--muted);font-size:var(--fs-13)}
+.sostfp{display:inline-flex;gap:var(--space-8);align-items:center;color:var(--ink);text-decoration:none}
+.sostfp .sp-ic{color:var(--muted)}
+.sotm{gap:var(--space-8);align-items:center;color:inherit;text-decoration:none}
+.ivbox{display:flex;flex-direction:column;gap:var(--space-8)}
+.ivrow{gap:var(--space-12);align-items:center;padding:var(--space-8) 0;border-bottom:1px solid var(--line-soft)}
+.ivrow .sp-col{gap:2px;min-width:0}
+.ivrow small{color:var(--muted)}
+.ivalt{margin:var(--space-4) 0 0}
+.ivsel{display:flex;flex-direction:column;gap:var(--space-4);margin-top:var(--space-12)}
+.ivsel .overline{color:var(--muted);font-size:var(--fs-11);font-weight:800;letter-spacing:.1em;text-transform:uppercase}
+.sqncol .label{font-size:var(--fs-13)}
+.ivok,.uchk.ok{color:var(--ok)}
+.ivno,.uchk.no{color:var(--crit)}
+.ivok,.ivno{display:flex;gap:var(--space-4);align-items:center}
+.ivdlg,.sodlg{display:flex;flex-direction:column;gap:var(--space-20)}
+.ivfoot{gap:var(--space-16);align-items:center}
+.sodel{gap:var(--space-16);align-items:center;border-top:1px solid var(--line-soft);padding-top:var(--space-16)}
+.sologo,.sqnlogo{gap:var(--space-16);align-items:center}
+.socom{position:relative}
+.socomL{border:1px solid var(--line-strong);background:var(--surface);box-shadow:var(--shadow-dialog);margin-top:var(--space-4);display:flex;flex-direction:column}
+.socomL[hidden]{display:none!important}
+.socomL button{display:flex;justify-content:space-between;gap:var(--space-12);padding:var(--space-8) var(--space-12);border:0;background:none;text-align:left;font:inherit;color:var(--ink);cursor:pointer}
+.socomL button:hover,.socomL button:focus{background:var(--sunk)}
+.sqncols{gap:var(--space-24);flex-wrap:wrap}
+.sqncol{gap:var(--space-8);align-items:center;cursor:pointer}
+.sqncol input[type=color]{width:var(--space-32);height:var(--space-32);padding:0;border:1px solid var(--line);background:none}
+.sqminv{display:flex;flex-direction:column;gap:var(--space-8);margin-top:var(--space-12)}
+.uadd{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-12)}
+.uadd .uaw{grid-column:1/-1}
+.uchk{display:block;margin-top:var(--space-4);font-size:var(--fs-13)}
+.ainv{background:var(--sunk);padding:var(--space-12)}
+/* Società del profilo (1.33.7-dev.4): righe come le Squadre, con i loghi delle squadre sovrapposti e gli atleti */
+.socp-meta{display:flex;flex-direction:column;align-items:flex-end;gap:var(--space-4);flex:none}
+.socp-crests{display:inline-flex;align-items:center}
+.socp-crests .sp-crest{box-shadow:0 0 0 2px var(--c,var(--ink)),0 0 0 3px var(--surface)}
+.socp-crests .sp-crest+.sp-crest{margin-left:-6px}
+.socp-crests small{margin-left:var(--space-4)}
+.socp-n{white-space:nowrap}
+/* telefono: fino a 10 loghi non stanno accanto al nome, vanno sotto (1.33.7-dev.5) */
+@media (max-width:600px){
+  .socp-row{flex-wrap:wrap;row-gap:var(--space-8)}
+  .socp-row>.sp-chev{order:2}
+  .socp-meta{order:3;flex:1 0 100%;flex-direction:row;align-items:center;justify-content:space-between;padding-left:48px}
+}
+/* Modifica della squadra (1.33.7-dev.6, Diego 2026-11-05): sigla in maiuscolo, un campo da gioco per riga con l'etichetta accanto */
+.sqsig{text-transform:uppercase;letter-spacing:.12em;font-weight:800}
+/* 2026-11-05 (Diego): via e numero, comune, etichetta (menu Partita, Allenamento, Altro…) sulla stessa riga; sotto l'esito
+   della verifica dell'indirizzo o le proposte */
+.sqfcampi{display:flex;flex-direction:column;gap:var(--space-16)}
+.sqfcampi>div:not(.sqfc-w){align-self:flex-start}
+.sqfc-w{display:flex;flex-direction:column;gap:var(--space-4)}
+.sqfc{gap:var(--space-12);align-items:flex-end;flex-wrap:nowrap}
+.sqfc>.sp-field{min-width:0}
+.sqfc>.sp-field:nth-child(2){flex:0 0 170px}
+.sqfc>.sp-field:nth-child(3){flex:0 1 150px}
+.sqfc select{width:100%;appearance:none;-webkit-appearance:none;background:none;border:0;font:inherit;color:inherit;padding-right:var(--space-24);cursor:pointer}
+.sqfc-x{flex:none;padding-bottom:var(--space-12)}
+.sqfc-st:empty{display:none}
+.sqfsug{display:flex;flex-wrap:wrap;align-items:baseline;gap:var(--space-4) var(--space-12)}
+@media (max-width:760px){.sqfc{flex-wrap:wrap}.sqfa{flex-basis:100%}}
+.sqfcols{display:flex;flex-direction:column;gap:var(--space-16);margin-top:var(--space-16)}
+.sqfcolr{display:flex;flex-wrap:wrap;gap:var(--space-16) var(--space-32);align-items:flex-start}
+.sqfcol{display:flex;flex-direction:column;gap:var(--space-8);position:relative}
+.sqfsw{border:0;background:none;padding:0;font:inherit;color:inherit;text-align:left}
+.sqfsq{width:var(--space-32);height:var(--space-32);box-shadow:0 0 0 1px var(--line-strong);flex:none}
+.sqfsw[aria-expanded="true"] .sqfsq{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--ink)}
+.sqfpop{display:flex;flex-direction:column;gap:var(--space-8);padding:var(--space-12);border:1px solid var(--line-strong);background:var(--surface);box-shadow:var(--shadow-dialog)}
+.sqfalt{display:inline-flex;align-items:center;gap:var(--space-8);cursor:pointer;font-size:var(--fs-13)}
+.sqfalt input[type=color]{width:var(--space-24);height:var(--space-24);padding:0;border:1px solid var(--line);background:none}
+/* indirizzo con la tendina delle proposte */
+.sqfa{position:relative;flex:1 1 auto;min-width:0}
+.sqfa>.sp-field{width:100%}
+.sqfdd{position:absolute;left:0;right:0;top:100%;z-index:20;margin-top:2px;display:flex;flex-direction:column;border:1px solid var(--line-strong);background:var(--surface);box-shadow:var(--shadow-dialog);max-height:280px;overflow-y:auto}
+.sqfdd[hidden]{display:none!important}
+.sqfdd-i{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:var(--space-8) var(--space-12);border:0;border-bottom:1px solid var(--line-soft);background:none;color:var(--ink);font:inherit;text-align:left;cursor:pointer}
+.sqfdd-i:hover,.sqfdd-i:focus-visible{background:var(--sunk)}
+.sqfdd-i small{color:var(--muted);font-size:var(--fs-12)}
+.sqfdd-m{color:var(--muted);cursor:default;font-size:var(--fs-13)}
+/* Scheda dell'atleta (1.33.7-dev.6, Diego 2026-11-05): due colonne come la pagina della squadra (SPIN.manage); sul telefono
+   intestazione, statistiche, segreteria. Statistiche avanzate in arrivo: il campo del basket inclusivo della landing nei
+   colori della Segreteria, sfocato, con il riquadro sopra */
+.mgx--athlete .mgx-o-sts{order:2}.mgx--athlete .mgx-o-seg{order:3}
+.mgx-line{color:var(--muted)}
+.atseg{margin-top:0}
+.atseg>label{color:var(--muted)}
+.mgx-o-seg .libc{margin-top:var(--space-16)}
+.atx-adv{position:relative;margin-top:var(--space-24);overflow:hidden}
+.atx-adv-c{filter:blur(4px);opacity:.75;pointer-events:none}
+.atx-court .lpx-cf{fill:var(--sunk);stroke:var(--line-strong)}
+.atx-court .lpx-cl{stroke:var(--line-strong)}
+.atx-court .lpx-hp{fill:var(--surface);stroke:var(--muted)}
+.atx-court .lpx-hp-lo{fill:var(--muted)}
+.atx-adv-b{position:absolute;inset:0;margin:auto;width:max-content;max-width:calc(100% - 2 * var(--space-16));height:max-content;display:flex;flex-direction:column;align-items:center;gap:var(--space-4);padding:var(--space-16) var(--space-24);background:var(--surface);border:1.5px solid var(--ink);text-align:center}
+.atx-adv-b b{font-family:var(--display);font-stretch:var(--display-w);font-size:var(--fs-20);text-transform:uppercase}
+.atx-adv-b span{font-size:var(--fs-12);font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.atstate .arow{flex-wrap:wrap}
+/* Numero dell'atleta al posto dello stemma (Diego, 2026-11-05): decina nel primo colore e unità nel secondo, grande quanto lo
+   stemma; i colori chiari hanno il contorno scuro per leggersi sul bianco */
+.atx-num{position:relative}
+.mgx .mgx-crest.atx-num>b{position:relative;display:flex;font-family:var(--display);font-stretch:var(--display-w);font-weight:900;font-style:italic;font-size:calc(var(--fs-20) * 1.7);line-height:1;letter-spacing:-.04em;transform:translateX(-.04em)}
+.atx-num i{font-style:inherit}
+.atx-num i.lt{text-shadow:0 0 1px var(--ink),0 0 1px var(--ink),0 0 1px var(--ink)}
+@container mgx (min-width:900px){.mgx .mgx-crest.atx-num>b{font-size:calc(var(--fs-20) * 3.2)}}
+/* Staff della società (Diego, 2026-11-05): righe che aprono il ruolo del membro, come lo Staff delle squadre */
+.sostf{width:100%;border:0;border-bottom:1px solid var(--line-soft);background:none;color:var(--ink);font:inherit;text-align:left;cursor:pointer}
+.sostf:hover,.sostf:focus-visible{background:var(--sunk)}
+.sostf .sp-col{align-items:flex-start}
+.soplus{min-width:var(--space-32);justify-content:center}

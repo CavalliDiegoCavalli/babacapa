@@ -178,7 +178,8 @@
      il pulsante rosso LIVE con il pallino che pulsa e sotto solo il quarto in corso (niente sottotitolo, ora o punteggio) */
   function liveBox(b) {
     /* SP-IN 2026-11-06 (Diego): prima della gara, se la gara supporta il Live (un refertista iscritto) o no */
-    if (b.kind === 'pronto') return `<section class="ep-livebox ep-livebox--pre" aria-label="Diretta"><p class="ep-livepre"><b>Questa gara supporta la funzione Live.</b> Connettiti a inizio gara</p><a class="ep-livedemo" href="${esc(b.demoHref || '#')}"><span>Guarda una demo</span></a></section>`;
+    /* SP-IN (2026-11-06, Diego): niente demo; al posto del pulsante un avviso della stessa forma col solo contorno rosso */
+    if (b.kind === 'pronto') return `<section class="ep-livebox ep-livebox--pre" aria-label="Diretta"><p class="ep-livepre"><b>Questa gara supporta la funzione Live.</b></p><span class="ep-livesoon"><span>La live inizierà all'inizio della gara</span></span></section>`;
     if (b.kind === 'no') return `<section class="ep-livebox ep-livebox--no" aria-label="Diretta"><p class="ep-livepre">Questa gara non supporta la funzione Live</p></section>`;
     return `<section class="ep-livebox" aria-label="Diretta"><a class="ep-livebtn" href="${esc(b.href || '#')}"><span><i class="ep-livedot" aria-hidden="true"></i>Live</span></a><b class="ep-livelbl">${esc(b.label || '')}</b></section>`;
   }
@@ -207,6 +208,7 @@
     const place = placeTxt ? (d.venue.href
       ? `<a class="ep-place" href="${esc(d.venue.href)}"${d.venue.ext ? ' target="_blank" rel="noopener"' : ''} aria-label="Apri ${esc(d.venue.name)} nelle mappe">${I.pin}<span>${placeTxt}</span></a>`
       : `<span class="ep-place">${I.pin}<span>${placeTxt}</span></span>`) : '';
+    /* SP-IN 2026-11-06 (Diego, 1.34.2): nell'app nativa data e ora sono un pulsante (whenAct) che salva la gara nel calendario */
     const whenTxt = [[w.day, w.date].filter(Boolean).join(' '), w.time ? 'ore ' + w.time : ''].filter(Boolean).join(' · ');
     const liveTxt = ['Live', [d.live && d.live.period, d.live && d.live.clock].filter(Boolean).join(' ')].filter(Boolean).join(' · ');
     const title = `${H.name} contro ${A.name}`;
@@ -224,7 +226,7 @@
 </header>
 <div class="ep-info">
   ${live && !d.liveBlock ? `<span class="ep-live">${esc(liveTxt)}</span>` : ''}
-  <b class="ep-when${d.start || d.when ? '' : ' is-tbd'}">${esc(whenTxt)}</b>
+  ${d.whenAct ? `<button type="button" class="ep-when ep-when--btn" data-act="${esc(d.whenAct.act)}" data-id="${esc(d.whenAct.id)}" aria-label="Salva nel calendario: ${esc(whenTxt)}">${I.cal || ''}<span>${esc(whenTxt)}</span></button>` : `<b class="ep-when${d.start || d.when ? '' : ' is-tbd'}">${esc(whenTxt)}</b>`}
   ${place}
 </div>
 ${d.liveBlock ? liveBox(d.liveBlock) : ''}

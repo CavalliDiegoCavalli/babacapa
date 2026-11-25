@@ -66,6 +66,7 @@
     <div class="evx-seg" role="group" aria-label="Quali eventi">
       ${seg.menu ? dropdown(nx, ps) : `${tag(nx, 'evx-s evx-s--next', `<span>${esc(nx.label || 'Prossimi')}${nx.count != null ? `<small>${esc(nx.count)}</small>` : ''}</span>`, ` aria-pressed="${!ps.pressed}"`)}
       ${tag(ps, 'evx-s evx-s--past', `<span>${I.clock}</span>`, ` aria-pressed="${!!ps.pressed}" aria-label="${esc(ps.label || 'Già giocati')}" title="${esc(ps.label || 'Già giocati')}"`)}`}
+      ${h.sez ? menu(h.sez) : ''}
       ${h.comps ? `<span class="evx-csep" aria-hidden="true"></span>${tag(h.comps, 'evx-s evx-s--comps', `<span>${I.cup}<b class="evx-cl">${esc(h.comps.label || 'Competizioni')}</b></span>`, ` aria-haspopup="dialog" aria-label="${esc(h.comps.label || 'Competizioni')}" title="${esc(h.comps.label || 'Competizioni')}"`)}` : ''}
     </div>
     ${fl ? `<span class="evx-sep" aria-hidden="true"></span><div class="evx-filters" role="group" aria-label="Filtra gli eventi">${fl}</div>` : ''}
@@ -82,6 +83,19 @@
     return `<details class="evx-dd"><summary class="evx-s evx-s--next" aria-haspopup="menu"><span>${esc(cur.label || (ps.pressed ? 'Già giocati' : 'Prossimi'))}${I.down}</span></summary>
       <div class="evx-dd-m" role="menu">${opt(nx, !ps.pressed, 'Prossimi')}${opt(ps, !!ps.pressed, 'Già giocati')}</div></details>`;
   }
+  /* SP-IN (2026-11-25, Diego, 1.35.0-dev.13): h.sez = {label, aria, state, options:[{label, hint, heart, pressed, attrs}]}:
+     tendina delle sezioni territoriali accanto a Prossimi; l'elenco scorre se è lungo.
+     1.35.0-dev.15 (Diego, proposta 5 della tela https://claude.ai/artifact/6EZtBy96Rs2jyxpdsK44yg): il pulsante è come
+     Competizioni, con la sigla "ST" e, da 900 px, "ST - <scelta>"; state: 'all' contorno (tutte le sezioni), 'one' pieno
+     (una sezione non seguita), 'fav' pieno con il cuoricino in alto a destra (una o più sezioni seguite) */
+  function menu(m) {
+    const opt = o => tag(o, 'evx-dd-o', `<span>${o.heart ? I.heart : ''}<b>${esc(o.label)}</b>${o.hint ? `<small>${esc(o.hint)}</small>` : ''}</span>${o.pressed ? I.check : ''}`, ` role="menuitemradio" aria-checked="${!!o.pressed}"`);
+    const st = m.state === 'fav' || m.state === 'one' ? ' is-on' : '';
+    const hb = m.state === 'fav' ? `<i class="evx-hb" aria-hidden="true">${HEART_F}</i>` : '';
+    return `<details class="evx-dd evx-dd--sez"><summary class="evx-s evx-s--sez${st}" aria-haspopup="menu" aria-label="${esc((m.aria || 'Filtro') + ': ' + m.label)}" title="${esc(m.label)}"><span><b class="evx-st">ST</b><b class="evx-sx" aria-hidden="true">-</b><b class="evx-sl">${esc(m.label)}</b></span>${hb}</summary>
+      <div class="evx-dd-m" role="menu" aria-label="${esc(m.aria || '')}">${(m.options || []).map(opt).join('')}</div></details>`;
+  }
+  const HEART_F = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 4.5 6.8 4.5c2.2 0 3.6 1.2 5.2 3 1.6-1.8 3-3 5.2-3 3.8 0 5.9 3.9 4.4 7.3C19.5 16.4 12 21 12 21z"/></svg>';
   // la tendina aperta si chiude toccando fuori
   document.addEventListener('click', e => {
     document.querySelectorAll('details.evx-dd[open]').forEach(d => { if (!d.contains(e.target)) d.removeAttribute('open'); });

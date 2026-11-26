@@ -1,6 +1,6 @@
 /* Babacapa · Live per i tifosi (1.34.0, docs/Live/LIVE.md; mockup approvato da Diego il 2026-11-06, docs/Live/mockup/Main.dc.html).
    Script classico; usa window.SPIN.core e window.SPIN.eventPoster (colori delle squadre). Espone window.SPIN.live:
-     mount(el, opts) → controller { load(g), push(g), gate(kind), destroy() }
+     mount(el, opts) → controller { load(g), push(g), gate(kind), suspend(on), note(items), destroy() }
        opts.teams   {A:{name, full, sig, logo}, B:{…}}   squadre (A in casa, B ospite)
        opts.colors  risultato di SPIN.eventPoster.teamColors
        opts.gate    '' | 'login' | 'web'                 Live bloccato e sfocato (sez. 8)
@@ -86,7 +86,7 @@
     for (let i = 0; i < n && i < ev.length; i++) {
       const e = ev[i], t = e.t === 'B' ? 'B' : 'A', qi = Math.max(0, (e.q || 1) - 1);
       reach('gioco', e.q || 1);
-      const f = { k: e.y, i, t, tc: tc(t), num: e.n != null ? String(e.n) : '', h: ql(e.q || 1) + (e.h ? ' · ' + e.h : '') };
+      const f = { k: e.y, i, t, tc: tc(t), num: e.n != null ? String(e.n) : '', h: ql(e.q || 1) + (e.h ? ' · ' + e.h : '') + (e.fx ? ' · corretto' : '') };   /* SP-IN (2026-11-26): azione corretta dal refertista */
       if (e.h) s.h = e.h;
       if (e.y === 'score') {
         const p = +e.p || 0;
@@ -286,7 +286,7 @@ ${court.map(x => row(x, true, false)).join('')}${bench.map((x, k) => row(x, fals
     const mq = window.matchMedia ? window.matchMedia('(min-width: 900px)') : null;
     let G = { fase: 'gioco', q: 1, ev: [], lu: {}, gioc: { A: [], B: [] }, nomi: {} };
     let disp = { n: 0, ph: { k: 'pausa', q: 0 } }, queue = [], playing = null, timer = 0, paused = false, tab = 'live', gate = opts.gate || '', infoI = null;
-    let lastSc = { A: null, B: null }, popN = { A: 0, B: 0 }, feedLen = 0, dead = false;
+    let lastSc = { A: null, B: null }, popN = { A: 0, B: 0 }, feedLen = 0, dead = false, sosp = false, sospT = 0;
     const tablet = () => !!(mq && mq.matches);
     el.innerHTML = `<div class="lv" style="--lv-a:${C.a};--lv-a-on:${C.aOn};--lv-b:${C.b};--lv-b-on:${C.bOn}">
 <section class="lv-hero" aria-label="Tabellone"><div class="lv-slab lv-slab-a"></div><div class="lv-slab lv-slab-b"></div><div class="lv-tex-w"><div class="lv-tex"></div></div><div class="lv-glint"></div>
@@ -298,7 +298,7 @@ ${T2.map(t => `<div class="lv-side lv-side-${t === 'A' ? 'a' : 'b'} ${tc(t)}" st
 <div class="lv-panes"><section class="lv-pane lv-pane-feed" aria-label="Cronaca"><h3 class="lv-ptag"><span>Cronaca</span></h3><ol class="lv-feed" data-lv="feed"></ol></section>
 <section class="lv-pane lv-pane-live" aria-label="Live"><h3 class="lv-ptag"><span>Live</span></h3><div class="lv-lcols" data-lv="cols"></div></section>
 <section class="lv-pane lv-pane-stats" aria-label="Statistiche"><h3 class="lv-ptag"><span>Statistiche</span></h3><div class="lv-st-head">${crest(T.A, 'lv-crest-s lv-t-a')}<small>dal referto, azione per azione</small>${crest(T.B, 'lv-crest-s lv-t-b')}</div><div class="lv-st-rows" data-lv="stats"></div><h4 class="lv-sub-h">Migliori realizzatori</h4><div data-lv="best"></div></section></div>
-<div data-lv="ov"></div><div data-lv="dlg"></div><div data-lv="gate"></div></div>`;
+<div data-lv="ov"></div><div data-lv="ban"></div><div data-lv="dlg"></div><div data-lv="gate"></div><div data-lv="sosp"></div></div>`;
     const root = el.firstElementChild, $ = k => root.querySelector('[data-lv="' + k + '"]');
     const ovEl = $('ov');
 
@@ -316,7 +316,7 @@ ${T2.map(t => `<div class="lv-side lv-side-${t === 'A' ? 'a' : 'b'} ${tc(t)}" st
       if (dead) return;
       const s = snap(G, disp.n, disp.ph);
       const ended = s.ck === 'fine';
-      $('pill').className = 'lv-live' + (ended ? ' lv-is-end' : ''); $('pillt').textContent = opts.demo ? 'Demo' : ended ? 'Conclusa' : 'In diretta';
+      $('pill').className = 'lv-live' + (ended ? ' lv-is-end' : sosp ? ' lv-is-sosp' : ''); $('pillt').textContent = opts.demo ? 'Demo' : ended ? 'Conclusa' : sosp ? 'Sospesa' : 'In diretta';
       /* tabellone: le cifre entrano dal basso quando cambiano, la sigla di chi ha segnato lampeggia */
       const pop = {}, fl = {};
       T2.forEach(t => { if (lastSc[t] !== null && s.sc[t] !== lastSc[t]) { popN[t]++; pop[t] = popN[t] % 2 ? 'lv-pop1' : 'lv-pop2'; fl[t] = popN[t] % 2 ? 'lv-fl1' : 'lv-fl2'; } lastSc[t] = s.sc[t]; });
@@ -413,16 +413,46 @@ ${T2.map(t => `<div class="lv-side lv-side-${t === 'A' ? 'a' : 'b'} ${tc(t)}" st
       if (playing && !playing.persist) timer = setTimeout(leave, 500); else if (!playing) timer = setTimeout(pump, 500); else if (queue.length) leave();
     }
     function onClick(ev) {
-      const x = ev.target.closest('[data-lv-exit],[data-lv-tab],[data-lv-info],[data-lv-close]'); if (!x) return;
+      const x = ev.target.closest('[data-lv-exit],[data-lv-tab],[data-lv-info],[data-lv-close],[data-lv-ban]'); if (!x) return;
       if (x.hasAttribute('data-lv-exit')) { if (opts.onExit) opts.onExit(); return; }
+      if (x.hasAttribute('data-lv-ban')) { banLeave(); return; }
       if (x.hasAttribute('data-lv-close')) { closeInfo(); return; }
       if (x.dataset.lvInfo != null) { openInfo(+x.dataset.lvInfo); return; }
       if (x.dataset.lvTab) {
+        if (sosp) return;   /* live sospesa: le viste non si cambiano (Diego, 2026-11-26) */
         tab = x.dataset.lvTab; layout();
         /* l'animazione dell'evento si vede solo nella vista Live: cambiando vista si chiude */
         if (playing && playing.typ === 'burst' && tab !== 'live' && !tablet()) leave();
         paint();
       }
+    }
+    /* SP-IN (2026-11-26, 1.35.2-dev.6, Diego; tela https://claude.ai/artifact/JoPpFNTxrLmCVTJG4dhSi2): correzioni del
+       refertista e note delle squadre → banner a fascia in fondo allo schermo, nel colore della squadra, etichetta bianca con
+       la scritta nera; uno alla volta, in coda, senza fermare le animazioni delle azioni; un tocco lo chiude. Durata: 6 s per
+       le correzioni, per le note 6 s più 1 s ogni 20 caratteri fino a 12 s. Item: { t: 'A'|'B', k: 'fix'|'void'|'note',
+       title, sub } */
+    let banQ = [], banCur = null, banT = 0;
+    const PEN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z"></path><path d="M13.5 6.5l4 4"></path></svg>';
+    const UNDO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14L4 9l5-5"></path><path d="M4 9h10.5a5.5 5.5 0 010 11H11"></path></svg>';
+    const NOTE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h14v12l-4 4H5z"></path><path d="M15 20v-4h4"></path><path d="M8 9h8M8 13h5"></path></svg>';
+    function banDur(b) { return b.k === 'note' ? Math.min(12000, 6000 + Math.floor(String(b.title || '').length / 20) * 1000) : 6000; }
+    function banNext() {
+      clearTimeout(banT); if (dead) return;
+      const w = $('ban'); banCur = banQ.shift() || null;
+      if (!banCur) { w.innerHTML = ''; return; }
+      const b = banCur, t = b.t === 'B' ? 'B' : 'A', lbl = (b.k === 'note' ? 'Nota del refertista' : b.k === 'void' ? 'Annullata' : 'Correzione') + ' · ' + T[t].name;
+      w.innerHTML = `<button type="button" class="lv-ban ${tc(t)}${b.k === 'note' ? ' lv-ban-note' : ''}" data-lv-ban role="status" aria-label="${esc(lbl)}: ${esc(b.title)}. Tocca per chiudere"><span class="lv-ban-band"></span><span class="lv-ban-tag"><span>${esc(lbl)}</span></span><span class="lv-ban-txt"><span class="lv-ban-ico">${b.k === 'note' ? NOTE : b.k === 'void' ? UNDO : PEN}</span><span class="lv-ban-col"><span class="lv-ban-t">${esc(b.title)}</span>${b.sub ? `<span class="lv-ban-s">${esc(b.sub)}</span>` : ''}</span></span>${banQ.length ? `<span class="lv-ban-q">+${banQ.length} in coda</span>` : ''}</button>`;
+      banT = setTimeout(banLeave, banDur(b));
+    }
+    function banLeave() {
+      clearTimeout(banT); const o = $('ban').firstElementChild; if (!o || !banCur) { banNext(); return; }
+      banCur = null; o.classList.add('lv-out'); banT = setTimeout(banNext, 450);
+    }
+    function note(items) {
+      if (dead || gate || !items || !items.length) return;
+      banQ = banQ.concat(items);
+      if (!banCur && !$('ban').firstElementChild) banNext();
+      else { const q = $('ban').querySelector('.lv-ban-q'), b = $('ban').firstElementChild; if (b && banCur) { if (q) q.textContent = '+' + banQ.length + ' in coda'; else b.insertAdjacentHTML('beforeend', `<span class="lv-ban-q">+${banQ.length} in coda</span>`); } }
     }
     function onKey(ev) { if (ev.key === 'Escape' && infoI !== null) closeInfo(); }
     function onMq() { layout(); paint(); }
@@ -430,9 +460,31 @@ ${T2.map(t => `<div class="lv-side lv-side-${t === 'A' ? 'a' : 'b'} ${tc(t)}" st
     if (mq) (mq.addEventListener ? mq.addEventListener('change', onMq) : mq.addListener(onMq));
     layout(); paint();
     return {
-      load, push, idle: () => !queue.length && (!playing || !!playing.persist) && !paused,
+      load, push, note, idle: () => !queue.length && (!playing || !!playing.persist) && !paused,
+      /* SP-IN (2026-11-26, 1.35.2-dev.4, Diego; tela https://claude.ai/artifact/FpRboocrgyjC3Q4i7cUGkv): live sospesa quando il
+         dispositivo del refertista è offline o fuori dallo streaming. Fascia grigia come l'avviso del canestro, ferma finché
+         non torna; sotto la rotellina della riconnessione; tutto il resto in scala di grigi; i tab non si toccano, "Esci dal
+         live" sì. Le animazioni aspettano: alla ripresa chi chiama passa la gara con push(g, {rientro: true}). */
+      suspend(on) {
+        on = !!on; if (dead || on === sosp) return; sosp = on; clearTimeout(sospT);
+        const w = $('sosp');
+        root.classList.toggle('lv-is-sosp', on);
+        if (on) {
+          paused = true; clearTimeout(timer);
+          if (playing && !playing.persist) { ovEl.innerHTML = ''; playing = null; }
+          w.innerHTML = `<div class="lv-sosp" role="status" aria-live="polite"><div class="lv-s-dim"></div><button type="button" class="lv-xbtn lv-s-x" data-lv-exit><span>${SV.back}${opts.demo ? 'Esci dalla demo' : 'Esci dal live'}</span></button>
+<div class="lv-burst lv-s-burst"><div class="lv-b-band lv-s-band"></div><span class="lv-b-team lv-s-chip"><span>Problema tecnico</span></span><div class="lv-b-txt lv-s-txt"><span class="lv-b-big"><svg viewBox="0 0 82 82" aria-hidden="true"><rect x="16" y="10" width="16" height="62" fill="currentColor"></rect><rect x="50" y="10" width="16" height="62" fill="currentColor"></rect></svg></span><span class="lv-b-col"><span class="lv-b-title">Live sospesa</span><span class="lv-s-who">A causa di un problema tecnico, la live è stata sospesa. Tornerà in onda in automatico appena verrà risolto il problema.</span></span></div></div>
+<div class="lv-s-spin"><svg viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="21" fill="none" stroke="currentColor" stroke-opacity=".25" stroke-width="5"></circle><path d="M26 5a21 21 0 0 1 21 21" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"></path></svg><small>Riconnessione in corso…</small></div></div>`;
+        } else {
+          const o = w.firstElementChild; if (o) o.classList.add('lv-out');
+          sospT = setTimeout(() => { if (!sosp) w.innerHTML = ''; }, OUT);
+          paused = false;
+          if (playing && !playing.persist) timer = setTimeout(leave, 500); else if (!playing) timer = setTimeout(pump, 300);
+        }
+        paint();
+      },
       gate(k) { gate = k || ''; layout(); },
-      destroy() { dead = true; clearTimeout(timer); root.removeEventListener('click', onClick); document.removeEventListener('keydown', onKey); if (mq) (mq.removeEventListener ? mq.removeEventListener('change', onMq) : mq.removeListener(onMq)); el.innerHTML = ''; }
+      destroy() { dead = true; clearTimeout(timer); clearTimeout(banT); clearTimeout(sospT); root.removeEventListener('click', onClick); document.removeEventListener('keydown', onKey); if (mq) (mq.removeEventListener ? mq.removeEventListener('change', onMq) : mq.removeListener(onMq)); el.innerHTML = ''; }
     };
   }
 
